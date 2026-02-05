@@ -67,9 +67,9 @@ export function PaymentModal({ isOpen, onClose, onPaymentSuccess }: PaymentModal
       // Create payment record
       const paymentData = await createCheckoutSession();
       
-      // Redirect to Buy Me a Coffee with pre-filled amount
-      // The user can increase the tip but cannot go below $30
-      const bmcUrl = `https://buymeacoffee.com/yashnaiduu?amount=30`;
+      // Redirect to Buy Me a Coffee with the payment ID
+      // We'll use the payment_id to track the payment on our backend
+      const bmcUrl = `https://www.buymeacoffee.com/yashnaiduu?payment_id=${paymentData.payment_id}&redirect_url=${encodeURIComponent(window.location.origin + '/payment-success')}`;
       window.location.href = bmcUrl;
     } catch (error) {
       console.error("Payment error:", error);
@@ -268,7 +268,10 @@ export function PaymentModal({ isOpen, onClose, onPaymentSuccess }: PaymentModal
                 
                 <div className="mt-8">
                   <button
-                    onClick={onPaymentSuccess}
+                    onClick={() => {
+                      onPaymentSuccess();
+                      onClose();
+                    }}
                     className="gradient-border w-full rounded-2xl px-5 py-4 font-semibold text-[--foreground]"
                   >
                     <span className="relative z-10 flex items-center justify-center gap-2 rounded-[calc(theme(borderRadius.xl)-2px)] bg-[--surface] px-5 py-4">
@@ -280,6 +283,7 @@ export function PaymentModal({ isOpen, onClose, onPaymentSuccess }: PaymentModal
                 </div>
               </div>
             )}
+
           </motion.div>
         </div>
       )}

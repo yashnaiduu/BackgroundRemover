@@ -1,9 +1,11 @@
 # Node
 next-frontend/node_modules
 next-frontend/.next
+next-frontend/out
 next-frontend/.vercel
 next-frontend/.turbo
 next-frontend/.env*
+!next-frontend/.env.local.example
 
 # Python
 venv/

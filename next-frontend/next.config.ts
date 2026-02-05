@@ -1,14 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: "http://localhost:8000/api/:path*",
-      },
-    ];
+  output: 'export',
+  images: {
+    unoptimized: true,
   },
+  basePath: '/background-remover-pro',
+  // API calls will use NEXT_PUBLIC_API_BASE env var
 };
 
 export default nextConfig;

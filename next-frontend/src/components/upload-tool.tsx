@@ -41,7 +41,7 @@ export function UploadTool() {
   const [processingProgress, setProcessingProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const { remaining, isExhausted, increment, isTrialExpired, trialStartTime, trialPeriodHours } = useTrial();
+  const { remaining, isExhausted, increment } = useTrial();
   const { user, token, refreshUser } = useAuth();
 
   const trackUsage = useCallback(async (file: File, result: unknown) => {
@@ -279,7 +279,13 @@ export function UploadTool() {
             </div>
             <div className="overflow-hidden rounded-xl border border-white/10">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={inputDataUrl ?? ""} alt="Original" className="block max-h-[360px] w-full object-contain bg-black/5 dark:bg-white/5" />
+              {inputDataUrl ? (
+                <img src={inputDataUrl} alt="Original" className="block max-h-[360px] w-full object-contain bg-black/5 dark:bg-white/5" />
+              ) : (
+                <div className="flex items-center justify-center h-64 bg-black/5 dark:bg-white/5">
+                  <FileImage className="h-12 w-12 opacity-50" />
+                </div>
+              )}
             </div>
           </div>
           <div>
@@ -288,7 +294,17 @@ export function UploadTool() {
             </div>
             <div className="overflow-hidden rounded-xl border border-white/10">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={outputDataUrl ?? ""} alt="Result" className="block max-h-[360px] w-full object-contain bg-transparent" />
+              {outputDataUrl ? (
+                <img src={outputDataUrl} alt="Result" className="block max-h-[360px] w-full object-contain bg-transparent" />
+              ) : (
+                <div className="flex items-center justify-center h-64 bg-transparent">
+                  {isLoading ? (
+                    <Loader2 className="h-12 w-12 animate-spin opacity-50" />
+                  ) : (
+                    <FileImage className="h-12 w-12 opacity-50" />
+                  )}
+                </div>
+              )}
             </div>
             {outputDataUrl && (
               <a

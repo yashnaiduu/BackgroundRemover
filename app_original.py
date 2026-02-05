@@ -4,7 +4,6 @@ from functools import wraps
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
-from flask_cors import CORS
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -26,17 +25,12 @@ from models import db, User, Payment, UsageRecord
 
 app = Flask(__name__, static_folder='public', static_url_path='')
 
-# Enable CORS for frontend
-CORS(app, resources={r"/api/*": {"origins": "*"}})
-
-# Configuration
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', secrets.token_hex(16))
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///background_remover.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', secrets.token_hex(32))
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=24)
 
-# Email configuration
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
 app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
 app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'True').lower() == 'true'
@@ -44,7 +38,6 @@ app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER')
 
-# Initialize extensions
 db.init_app(app)
 mail = Mail(app)
 
@@ -70,11 +63,9 @@ def token_required(f):
     
     return decorated
 
-# Create tables
 with app.app_context():
     db.create_all()
 
-# Routes
 @app.route('/')
 def index():
     return app.send_static_file('index.html')
@@ -189,15 +180,13 @@ def register():
             'exp': datetime.utcnow() + app.config['JWT_ACCESS_TOKEN_EXPIRES']
         }, app.config['JWT_SECRET_KEY'], algorithm='HS256')
         
-        # Send welcome email (optional - won't fail if email not configured)
         try:
-            if app.config['MAIL_USERNAME']:
-                msg = Message(
-                    subject='Welcome to Background Remover!',
-                    recipients=[email],
-                    body=f'Hi {name or "there"},\n\nWelcome to Background Remover! You can now start removing backgrounds from your images.\n\nYou have 4 free trials remaining.\n\nBest regards,\nThe Background Remover Team'
-                )
-                mail.send(msg)
+            msg = Message(
+                subject='Welcome to Background Remover!',
+                recipients=[email],
+                body=f'Hi {name or "there"},\n\nWelcome to Background Remover! You can now start removing backgrounds from your images.\n\nYou have {4} free trials remaining.\n\nBest regards,\nThe Background Remover Team'
+            )
+            mail.send(msg)
         except Exception as e:
             print(f"Failed to send welcome email: {e}")
         
@@ -205,8 +194,11 @@ def register():
             'user': user.to_dict(),
             'token': token
         }), 201
+    except ValueError as e:
+        return jsonify({'error': 'Invalid data provided. Please check your input.', 'details': str(e)}), 400
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Unexpected error in registration: {str(e)}")
+        return jsonify({'error': 'An unexpected error occurred during registration. Please try again.', 'details': str(e)}), 500
 
 @app.route('/api/auth/login', methods=['POST'])
 def login():
@@ -230,8 +222,11 @@ def login():
             'user': user.to_dict(),
             'token': token
         })
+    except ValueError as e:
+        return jsonify({'error': 'Invalid data provided. Please check your input.', 'details': str(e)}), 400
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Unexpected error in login: {str(e)}")
+        return jsonify({'error': 'An unexpected error occurred during login. Please try again.', 'details': str(e)}), 500
 
 @app.route('/api/auth/profile', methods=['GET'])
 @token_required
@@ -250,8 +245,11 @@ def get_user(current_user, user_id):
             return jsonify({'error': 'User not found'}), 404
         
         return jsonify(user.to_dict())
+    except ValueError as e:
+        return jsonify({'error': 'Invalid user ID provided.', 'details': str(e)}), 400
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Unexpected error in get_user: {str(e)}")
+        return jsonify({'error': 'An unexpected error occurred while fetching user data. Please try again.', 'details': str(e)}), 500
 
 @app.route('/api/users', methods=['GET'])
 @token_required
@@ -262,16 +260,21 @@ def get_all_users(current_user):
         
         users = User.query.all()
         return jsonify([user.to_dict() for user in users])
+    except ValueError as e:
+        return jsonify({'error': 'Invalid data provided.', 'details': str(e)}), 400
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Unexpected error in get_all_users: {str(e)}")
+        return jsonify({'error': 'An unexpected error occurred while fetching users. Please try again.', 'details': str(e)}), 500
 
 @app.route('/api/create-checkout-session', methods=['POST'])
 @token_required
 def create_checkout_session(current_user):
     try:
+        # Instead of creating a Stripe session, we'll create a payment record
+        # with a fixed amount of $30 and mark it as pending
         payment = Payment()
         payment.user_id = current_user.id
-        payment.stripe_payment_id = f"bmc_{secrets.token_hex(16)}"
+        payment.stripe_payment_id = f"bmc_{secrets.token_hex(16)}"  # Generate a unique ID for BMC
         payment.amount = 3000  # $30 in cents
         payment.currency = 'usd'
         payment.status = 'pending'
@@ -279,24 +282,35 @@ def create_checkout_session(current_user):
         db.session.add(payment)
         db.session.commit()
         
+        # Return the payment ID which will be used to redirect to Buy Me a Coffee
         return jsonify({'id': payment.id, 'payment_id': payment.stripe_payment_id})
+    except ValueError as e:
+        return jsonify({'error': 'Invalid data provided for checkout.', 'details': str(e)}), 400
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Unexpected error in create_checkout_session: {str(e)}")
+        return jsonify({'error': 'An unexpected error occurred while creating checkout session. Please try again.', 'details': str(e)}), 500
 
 @app.route('/api/webhook', methods=['POST'])
 def payment_webhook():
     try:
+        # Log the incoming data for debugging
         data = request.get_json()
+        app.logger.info(f"Webhook received: {data}")
         
+        # Handle Buy Me a Coffee webhook
+        # Extract payment information
         payment_id = data.get('payment_id') or data.get('external_id') or data.get('id')
         amount = data.get('amount', 0)
         currency = data.get('currency', 'USD')
+        supporter_email = data.get('supporter_email')
         status = data.get('status', 'pending')
         
+        # Find the payment record
         payment = None
         if payment_id:
             payment = Payment.query.filter_by(stripe_payment_id=payment_id).first()
             if not payment:
+                # If we can't find by stripe_payment_id, try to find by id
                 try:
                     payment_id_int = int(payment_id.split('_')[-1]) if '_' in str(payment_id) else int(payment_id)
                     payment = Payment.query.get(payment_id_int)
@@ -304,24 +318,30 @@ def payment_webhook():
                     pass
         
         if not payment:
+            app.logger.warning(f"Payment not found for payment_id: {payment_id}")
             return jsonify({'error': 'Payment not found'}), 404
         
+        # Update payment status
         payment.status = status
         if amount:
-            payment.amount = int(float(amount) * 100)
+            payment.amount = int(float(amount) * 100)  # Convert to cents
         payment.currency = currency.lower()
         
+        # If payment is successful, upgrade the user
         if status.lower() in ['completed', 'success', 'paid']:
             user = User.query.get(payment.user_id)
             if user:
                 user.is_premium = True
                 user.premium_since = datetime.utcnow()
+                app.logger.info(f"User {user.id} upgraded to premium")
         
         db.session.commit()
+        app.logger.info(f"Payment {payment.id} updated with status: {status}")
         
         return jsonify({'status': 'success'})
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Webhook error: {str(e)}")
+        return jsonify({'error': 'Webhook processing failed'}), 500
 
 @app.route('/api/payments/history', methods=['GET'])
 @token_required
@@ -329,8 +349,11 @@ def get_payment_history(current_user):
     try:
         payments = Payment.query.filter_by(user_id=current_user.id).all()
         return jsonify([payment.to_dict() for payment in payments])
+    except ValueError as e:
+        return jsonify({'error': 'Invalid data provided.', 'details': str(e)}), 400
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Unexpected error in get_payment_history: {str(e)}")
+        return jsonify({'error': 'An unexpected error occurred while fetching payment history. Please try again.', 'details': str(e)}), 500
 
 @app.route('/api/usage', methods=['POST'])
 @token_required
@@ -349,8 +372,11 @@ def track_usage(current_user):
         db.session.commit()
         
         return jsonify({'status': 'success'}), 201
+    except ValueError as e:
+        return jsonify({'error': 'Invalid data provided for usage tracking.', 'details': str(e)}), 400
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Unexpected error in track_usage: {str(e)}")
+        return jsonify({'error': 'An unexpected error occurred while tracking usage. Please try again.', 'details': str(e)}), 500
 
 @app.route('/api/usage/history', methods=['GET'])
 @token_required
@@ -358,11 +384,14 @@ def get_usage(current_user):
     try:
         usage_records = UsageRecord.query.filter_by(user_id=current_user.id).all()
         return jsonify([record.to_dict() for record in usage_records])
+    except ValueError as e:
+        return jsonify({'error': 'Invalid data provided.', 'details': str(e)}), 400
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Unexpected error in get_usage: {str(e)}")
+        return jsonify({'error': 'An unexpected error occurred while fetching usage data. Please try again.', 'details': str(e)}), 500
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8000))
+    port = int(os.environ.get('PORT', 8002))
     host = os.environ.get('BIND_ADDRESS', '0.0.0.0')
     
     app.run(debug=False, host=host, port=port)
