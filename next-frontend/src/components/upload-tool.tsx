@@ -2,23 +2,16 @@
 
 import { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Upload, 
-  ImageIcon, 
-  Loader2, 
-  Download, 
-  Crown, 
-  Sparkles,
-  Wand2,
-  Zap,
+import {
+  Upload,
+  ImageIcon,
+  Loader2,
+  Download,
   FileImage,
   CheckCircle,
   AlertCircle
 } from "lucide-react";
 import { postRemoveBackground } from "@/lib/api";
-import { useTrial } from "@/hooks/use-trial";
-import { useAuth } from "@/hooks/use-auth";
-import { PaymentModal } from "@/components/payment-modal";
 
 function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -35,75 +28,38 @@ export function UploadTool() {
   const [outputDataUrl, setOutputDataUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [outputFormat, setOutputFormat] = useState<"PNG" | "JPG" | "WEBP">("PNG");
   const [processingProgress, setProcessingProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const { remaining, isExhausted, increment } = useTrial();
-  const { user, token, refreshUser } = useAuth();
-
-  const trackUsage = useCallback(async (file: File, result: unknown) => {
-    if (!token) return;
-    
-    try {
-      await fetch("/api/usage", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          action: "background_removal",
-          metadata_json: {
-            timestamp: new Date().toISOString(),
-            file_type: file.type,
-            file_size: file.size,
-            output_format: result && typeof result === 'object' && 'format' in result ? (result as {format: string}).format : "PNG",
-            engine_used: result && typeof result === 'object' && 'engine' in result ? (result as {engine: string}).engine : "unknown",
-            processing_time: result && typeof result === 'object' && 'processingTime' in result ? (result as {processingTime: number}).processingTime : 0,
-          },
-        }),
-      });
-    } catch (error) {
-      console.error("Failed to track usage:", error);
-    }
-  }, [token]);
-
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const isPremium = user?.is_premium;
 
   const onFiles = useCallback(async (files: FileList | null) => {
     if (!files || !files[0]) return;
-    
-    if (isExhausted && !isPremium) {
-      setError("Free trial exceeded. Please purchase to continue.");
-      return;
-    }
-    
+
     const file = files[0];
-    
+
     if (!file.type.match('image.*')) {
       setError("Please upload a valid image file (PNG, JPG, WebP).");
       return;
     }
-    
+
     if (file.size > 10 * 1024 * 1024) {
       setError("File size exceeds 10MB limit. Please upload a smaller image.");
       return;
     }
-    
+
     setError(null);
     setOutputDataUrl(null);
     const dataUrl = await fileToDataUrl(file);
     setInputDataUrl(dataUrl);
     setIsLoading(true);
     setProcessingProgress(0);
-    
+
     const progressInterval = setInterval(() => {
       setProcessingProgress(prev => {
         if (prev >= 90) {
@@ -113,25 +69,18 @@ export function UploadTool() {
         return prev + 10;
       });
     }, 200);
-    
+
     try {
       const startTime = Date.now();
       const json = await postRemoveBackground({ image: dataUrl, format: outputFormat });
       const processingTime = Date.now() - startTime;
-      
+
       clearInterval(progressInterval);
       setProcessingProgress(100);
-      
+
       if (!json.image) throw new Error(json.error || "No image returned");
-      
-      const resultWithTime = {
-        ...json,
-        processingTime
-      };
-      
+
       setOutputDataUrl(json.image);
-      increment();
-      trackUsage(file, resultWithTime);
     } catch (e: unknown) {
       console.error("Background removal error:", e);
       clearInterval(progressInterval);
@@ -144,7 +93,7 @@ export function UploadTool() {
       setIsLoading(false);
       setTimeout(() => setProcessingProgress(0), 1000);
     }
-  }, [increment, isExhausted, isPremium, trackUsage, outputFormat]);
+  }, [outputFormat]);
 
   const onDrop = useCallback(
     (e: React.DragEvent<HTMLLabelElement>) => {
@@ -164,10 +113,7 @@ export function UploadTool() {
     [dragActive]
   );
 
-  const handlePaymentSuccess = useCallback(() => {
-    refreshUser();
-    setShowPaymentModal(false);
-  }, [refreshUser]);
+
 
   if (!mounted) {
     return (
@@ -205,13 +151,7 @@ export function UploadTool() {
     <div className="glass rounded-2xl p-6 soft-shadow">
       <h2 className="text-2xl font-semibold tracking-tight">Background Remover</h2>
       <p className="mt-2 opacity-80">Drag & drop an image or click to upload.</p>
-      <p className="mt-1 text-xs opacity-70">
-        {isPremium ? (
-          <span className="text-primary">Unlimited access</span>
-        ) : (
-          <span>Free trial remaining: {remaining}</span>
-        )}
-      </p>
+
 
       <label
         onDragOver={(e) => {
@@ -259,14 +199,7 @@ export function UploadTool() {
       {error && (
         <div className="mt-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
           {error}
-          {!isPremium && error.includes("Free trial exceeded") && (
-            <button
-              onClick={() => setShowPaymentModal(true)}
-              className="mt-2 text-amber-300 hover:text-amber-200 font-medium"
-            >
-              Upgrade to Pro
-            </button>
-          )}
+
         </div>
       )}
 
@@ -319,11 +252,7 @@ export function UploadTool() {
         </div>
       )}
 
-      <PaymentModal 
-        isOpen={showPaymentModal} 
-        onClose={() => setShowPaymentModal(false)} 
-        onPaymentSuccess={handlePaymentSuccess} 
-      />
+
     </div>
   );
 }

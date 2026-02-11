@@ -1,20 +1,16 @@
 "use client";
 import { motion } from "framer-motion";
-import { 
-  UploadIcon, 
-  Zap, 
-  Image, 
-  FileImage, 
-  Rocket, 
-  Crown,
+import {
+  UploadIcon,
+  Zap,
+  Image,
+  FileImage,
   Sparkles,
   Stars,
   BadgeCheck,
   ShieldCheck
 } from "lucide-react";
 import { UploadTool } from "@/components/upload-tool";
-import { PricingSection } from "@/components/pricing-section";
-import { PremiumFeatures } from "@/components/premium-features";
 import { AboutSection } from "@/components/about-section";
 import { ContactSection } from "@/components/contact-section";
 
@@ -33,11 +29,6 @@ const features = [
     icon: <FileImage className="h-6 w-6" />,
     title: "Multiple Formats",
     description: "Support for PNG, JPG, and WebP output formats"
-  },
-  {
-    icon: <Rocket className="h-6 w-6" />,
-    title: "Easy to Use",
-    description: "Simple drag-and-drop interface for instant results"
   }
 ];
 
@@ -56,7 +47,7 @@ export default function HomePage() {
                 <BadgeCheck className="h-4 w-4" />
                 AI-Powered Background Removal
               </div>
-              
+
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
                 Remove Backgrounds with <span className="text-primary">AI Precision</span>
               </h1>
@@ -70,15 +61,6 @@ export default function HomePage() {
                 >
                   <span className="relative z-10 block rounded-[calc(theme(borderRadius.xl)-2px)] bg-[--surface] px-8 py-4">
                     Try It Free
-                  </span>
-                </a>
-                <a 
-                  href="#pricing" 
-                  className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 px-8 py-4 text-base font-semibold text-amber-50 hover:from-amber-600 hover:to-orange-700 shadow-lg hover:shadow-xl transition-all"
-                >
-                  <span className="flex items-center gap-2">
-                    <Crown className="h-5 w-5" />
-                    Go Premium
                   </span>
                 </a>
               </div>
@@ -97,7 +79,7 @@ export default function HomePage() {
                 </div>
               </div>
             </motion.div>
-            
+
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -132,7 +114,7 @@ export default function HomePage() {
             </motion.div>
           </div>
         </div>
-        
+
         <motion.div
           aria-hidden
           className="pointer-events-none absolute -top-40 right-[-10%] h-80 w-80 rounded-full"
@@ -156,7 +138,7 @@ export default function HomePage() {
               Everything you need for professional background removal
             </p>
           </motion.div>
-          
+
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             {features.map((feature, index) => (
               <motion.div
@@ -192,8 +174,6 @@ export default function HomePage() {
         <UploadTool />
       </section>
 
-      <PremiumFeatures />
-      <PricingSection />
       <AboutSection />
       <ContactSection />
     </main>
