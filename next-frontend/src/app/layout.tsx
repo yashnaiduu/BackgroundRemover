@@ -16,8 +16,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Background Remover - AI-Powered Image Background Removal",
-  description: "Remove image backgrounds with pixel-perfect quality using our advanced AI technology. Try it free with 4 trials or go premium for unlimited access.",
+  title: "Novalens - AI Background Remover",
+  description: "Remove image backgrounds instantly with AI. Free, fast, and pixel-perfect.",
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({

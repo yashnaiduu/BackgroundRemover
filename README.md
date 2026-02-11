@@ -1,118 +1,158 @@
-# 🎨 Background Remover Pro
+# Novalens - AI Background Remover
 
-[![Deploy to GitHub Pages](https://github.com/yashnaiduu/background-remover-pro/actions/workflows/deploy.yml/badge.svg)](https://github.com/yashnaiduu/background-remover-pro/actions/workflows/deploy.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-> AI-powered background removal tool with premium features, authentication, and payment integration.
-
-**🌐 Live Demo**: [https://yashnaiduu.github.io/background-remover-pro](https://yashnaiduu.github.io/background-remover-pro)
+A free, fast, and powerful AI-powered background removal tool built with Next.js and Flask.
 
 ## ✨ Features
 
-- 🌗 Dual theme with animated toggle (sun/moon) and glassmorphism surfaces
-- 📤 Drag & drop upload with glowing border and micro‑interactions
-- 🔀 Before/After preview, one‑click download (PNG/JPG/WebP)
-- 🧠 AI engine with configurable options and fallback
-- 💳 Premium payment system with Buy Me a Coffee integration
-- 👤 User authentication and management
-- 📊 Usage analytics and tracking
-- 📧 Email notifications for payments and user registration
+- 🎯 **Instant Background Removal** - AI-powered background removal in seconds
+- 🎨 **Multiple Export Formats** - Download as PNG, JPG, or WEBP
+- 🚀 **100% Free** - No sign-up, no limits, completely free to use
+- 🎭 **Clean UI** - Minimalist, modern interface with dark mode support
+- 📱 **Responsive Design** - Works perfectly on desktop and mobile
 
-## 🧱 Tech Stack
+## 🎥 Demo
 
-- Next.js App Router, TailwindCSS v4, Framer Motion, Lucide Icons
-- Flask API (`/api/remove_background`), Pillow
+> **Coming Soon:** Demo video will be added here
 
-## 🚀 Quickstart
+## 🏗️ Project Architecture
 
-Prereqs: Node 18+, Python 3.10+, Git
-
-```bash
-# 1) Install Python deps
-python3 -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
-pip install backgroundremover
-
-# 2) Install frontend deps
-cd next-frontend && npm i
-
-# 3) Run both servers
-# Terminal A (backend)
-cd .. && ./venv/bin/python app.py
-# Terminal B (frontend)
-cd next-frontend && npm run dev
-
-# Open frontend (single link; API rewrites to Flask)
-open http://localhost:3000
+```mermaid
+graph TB
+    subgraph "Frontend - Next.js"
+        A[User Interface] --> B[Upload Component]
+        B --> C[API Client]
+        C --> D[Image Preview]
+        D --> E[Format Selector]
+        E --> F[Download Handler]
+    end
+    
+    subgraph "Backend - Flask"
+        G[API Endpoint] --> H{Background Removal Engine}
+        H --> I[Rembg AI Model]
+        H --> J[Image Processing]
+        J --> K[Format Conversion]
+        K --> L[Base64 Encoding]
+    end
+    
+    C -->|POST /api/remove_background| G
+    L -->|JSON Response| C
+    
+    style A fill:#18181b,stroke:#fff,color:#fff
+    style G fill:#18181b,stroke:#fff,color:#fff
+    style I fill:#3b82f6,stroke:#fff,color:#fff
 ```
 
-First run downloads the model to `~/.u2net/`. Subsequent runs are fast.
+### Tech Stack
 
-## 🔌 API
+**Frontend:**
+- Next.js 15 (React 19)
+- TypeScript
+- Tailwind CSS
+- Framer Motion
+- Lucide Icons
 
-POST `/api/remove_background`
+**Backend:**
+- Flask (Python)
+- Rembg (AI Background Removal)
+- Pillow (Image Processing)
+- ONNX Runtime
 
-Body:
+## 🚀 Quick Start
 
-```json
-{
-  "image": "data:image/png;base64,....",
-  "format": "PNG",
-  "model": "u2net",
-  "alpha_matting": true,
-  "alpha_matting_foreground_threshold": 240,
-  "alpha_matting_background_threshold": 10,
-  "alpha_matting_erode_structure_size": 10,
-  "alpha_matting_base_size": 1000
-}
+### Prerequisites
+
+- Node.js 18+ and npm
+- Python 3.11+
+- pip
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yashnaiduu/background-remover-pro.git
+   cd background-remover-pro
+   ```
+
+2. **Install Frontend Dependencies**
+   ```bash
+   cd next-frontend
+   npm install
+   ```
+
+3. **Install Backend Dependencies**
+   ```bash
+   cd ..
+   pip3 install flask flask-cors flask-sqlalchemy flask-mail python-dotenv pillow PyJWT
+   pip3 install "rembg[cpu]"
+   ```
+
+### Running Locally
+
+1. **Start the Backend Server** (Terminal 1)
+   ```bash
+   python3 app.py
+   ```
+   Backend will run on `http://localhost:8000`
+
+2. **Start the Frontend Server** (Terminal 2)
+   ```bash
+   cd next-frontend
+   npm run dev
+   ```
+   Frontend will run on `http://localhost:3000`
+
+3. **Open your browser** and navigate to `http://localhost:3000`
+
+## 📁 Project Structure
+
+```
+background-remover-pro/
+├── next-frontend/          # Next.js frontend application
+│   ├── src/
+│   │   ├── app/           # App router pages
+│   │   ├── components/    # React components
+│   │   ├── lib/          # API client & utilities
+│   │   └── providers/    # Context providers
+│   └── public/           # Static assets
+├── app.py                # Flask backend server
+├── models.py            # Database models
+└── README.md            # This file
 ```
 
-Response:
+## 🎨 Usage
 
-```json
-{
-  "success": true,
-  "image": "data:image/png;base64,....",
-  "format": "PNG",
-  "engine": "backgroundremover"
-}
+1. **Upload an Image** - Click or drag & drop an image (PNG, JPG, WEBP)
+2. **Wait for Processing** - AI removes the background automatically
+3. **Choose Format** - Select PNG, JPG, or WEBP
+4. **Download** - Get your processed image instantly
+
+## 🛠️ Configuration
+
+### Backend Port
+Edit `app.py` line 375:
+```python
+port = int(os.environ.get('PORT', 8000))  # Change 8000 to your preferred port
 ```
 
-## 🖼️ UI Structure
+### Frontend API URL
+Create `next-frontend/.env.local`:
+```env
+NEXT_PUBLIC_API_BASE=http://localhost:8000
+```
 
-- `next-frontend/src/app/page.tsx`: hero, tool, sections
-- `next-frontend/src/components/upload-tool.tsx`: drag & drop, preview, download
-- `next-frontend/src/components/theme-toggle.tsx`, `next-frontend/src/providers/theme-provider.tsx`
-- `next-frontend/src/components/navbar.tsx`, `next-frontend/src/components/footer.tsx`
+## 📝 License
 
-## 🌐 Deployment
+MIT License - feel free to use this project for personal or commercial purposes.
 
-This project is configured for production deployment:
+## 🤝 Contributing
 
-- **Frontend**: GitHub Pages (free, static hosting)
-- **Backend**: Render.com (free tier with PostgreSQL)
+Contributions are welcome! Feel free to open issues or submit pull requests.
 
-### Quick Deploy
+## 👨‍💻 Author
 
-1. **Deploy Backend to Render**
-   - Push to GitHub
-   - Connect to Render
-   - Deploy automatically with `render.yaml`
+**Yash Naidu**
+- GitHub: [@yashnaiduu](https://github.com/yashnaiduu)
 
-2. **Deploy Frontend to GitHub Pages**
-   - Enable GitHub Pages in repo settings
-   - Set `NEXT_PUBLIC_API_BASE` secret
-   - Push to trigger automatic deployment
+---
 
-📖 **Full deployment guide**: See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed step-by-step instructions.
-
-## 🧠 Notes
-
-- First run downloads the model to the user cache; subsequent runs are fast.
-- Free Render tier sleeps after 15 min of inactivity (wakes in ~30 seconds)
-- GitHub Pages updates automatically on push to main branch
-
-## 📣 Credits & License
-
-MIT © 2025. See LICENSE.
-
+Made with ❤️ using Next.js and Flask

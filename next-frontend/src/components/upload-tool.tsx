@@ -1,15 +1,12 @@
 "use client";
 
 import { useCallback, useRef, useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload,
   ImageIcon,
   Loader2,
   Download,
-  FileImage,
-  CheckCircle,
-  AlertCircle
+  FileImage
 } from "lucide-react";
 import { postRemoveBackground } from "@/lib/api";
 
@@ -30,7 +27,6 @@ export function UploadTool() {
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [outputFormat, setOutputFormat] = useState<"PNG" | "JPG" | "WEBP">("PNG");
-  const [processingProgress, setProcessingProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -58,32 +54,15 @@ export function UploadTool() {
     const dataUrl = await fileToDataUrl(file);
     setInputDataUrl(dataUrl);
     setIsLoading(true);
-    setProcessingProgress(0);
-
-    const progressInterval = setInterval(() => {
-      setProcessingProgress(prev => {
-        if (prev >= 90) {
-          clearInterval(progressInterval);
-          return prev;
-        }
-        return prev + 10;
-      });
-    }, 200);
 
     try {
-      const startTime = Date.now();
       const json = await postRemoveBackground({ image: dataUrl, format: outputFormat });
-      const processingTime = Date.now() - startTime;
-
-      clearInterval(progressInterval);
-      setProcessingProgress(100);
 
       if (!json.image) throw new Error(json.error || "No image returned");
 
       setOutputDataUrl(json.image);
     } catch (e: unknown) {
       console.error("Background removal error:", e);
-      clearInterval(progressInterval);
       if (e instanceof Error) {
         setError(e.message);
       } else {
@@ -91,7 +70,6 @@ export function UploadTool() {
       }
     } finally {
       setIsLoading(false);
-      setTimeout(() => setProcessingProgress(0), 1000);
     }
   }, [outputFormat]);
 
@@ -190,60 +168,139 @@ export function UploadTool() {
       )}
 
       {/* Preview */}
-      {/* Preview */}
       {(inputDataUrl || outputDataUrl) && (
-        <div className="mt-12 grid gap-8 md:grid-cols-2">
-          {/* Original */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-sm font-medium text-foreground/70">
-              <ImageIcon className="h-4 w-4" /> Original
-            </div>
-            <div className="overflow-hidden rounded-2xl border border-border bg-background/50 aspect-[4/3] flex items-center justify-center relative">
-              {inputDataUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={inputDataUrl} alt="Original" className="w-full h-full object-contain p-4" />
-              ) : (
-                <div className="flex items-center justify-center p-12">
-                  <FileImage className="h-10 w-10 text-border" />
-                </div>
-              )}
-            </div>
+        <div className="mt-16 space-y-8">
+          <div className="text-center">
+            <h3 className="text-xl font-semibold text-primary mb-2">Your Results</h3>
+            <p className="text-sm text-foreground/50">Compare the original and processed images</p>
           </div>
 
-          {/* Result */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-sm font-medium text-foreground/70">
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
-              Result
-            </div>
-            <div className="overflow-hidden rounded-2xl border border-border bg-[url('/checker.svg')] bg-repeat aspect-[4/3] flex items-center justify-center relative bg-white/5">
-              {outputDataUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={outputDataUrl} alt="Result" className="w-full h-full object-contain p-4 z-10" />
-              ) : (
-                <div className="flex items-center justify-center p-12">
-                  {isLoading ? (
-                    <Loader2 className="h-10 w-10 animate-spin text-primary/50" />
-                  ) : (
-                    <FileImage className="h-10 w-10 text-border" />
-                  )}
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Original */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-foreground/20" />
+                  <span className="text-sm font-medium text-foreground/70 uppercase tracking-wide">Original</span>
                 </div>
-              )}
+              </div>
+              <div
+                className="relative overflow-hidden rounded-2xl border-2 border-border/50 aspect-[4/3] flex items-center justify-center shadow-sm hover:shadow-md transition-shadow bg-surface"
+              >
+                {inputDataUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={inputDataUrl}
+                    alt="Original"
+                    className="w-full h-full object-contain p-1 rounded-2xl"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center p-12 text-border">
+                    <FileImage className="h-12 w-12 mb-2" />
+                    <span className="text-xs">No image</span>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="flex justify-end pt-2">
-              {outputDataUrl ? (
-                <a
-                  href={outputDataUrl}
-                  download={`background-removed.${outputFormat.toLowerCase()}`}
-                  className="inline-flex items-center gap-2 rounded-full bg-primary text-background px-6 py-2.5 text-sm font-medium hover:opacity-90 transition-opacity shadow-lg shadow-primary/20"
-                >
-                  <Download className="h-4 w-4" /> Download Result
-                </a>
-              ) : (
-                <button disabled className="inline-flex items-center gap-2 rounded-full bg-primary/5 text-primary/30 px-6 py-2.5 text-sm font-medium cursor-not-allowed">
-                  <Download className="h-4 w-4" /> Download Result
-                </button>
+            {/* Result */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="h-3 w-3 animate-spin text-primary" />
+                      <span className="text-sm font-medium text-primary uppercase tracking-wide">Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="h-2 w-2 rounded-full bg-primary" />
+                      <span className="text-sm font-medium text-primary uppercase tracking-wide">Result</span>
+                    </>
+                  )}
+                </div>
+                {outputDataUrl && (
+                  <a
+                    href={outputDataUrl}
+                    download={`background-removed.${outputFormat.toLowerCase()}`}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    Download
+                  </a>
+                )}
+              </div>
+              <div
+                className="relative overflow-hidden rounded-2xl border-2 border-primary/20 aspect-[4/3] flex items-center justify-center shadow-sm hover:shadow-md transition-shadow"
+                style={{
+                  backgroundImage: `
+                    linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
+                    linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
+                    linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
+                    linear-gradient(-45deg, transparent 75%, #f0f0f0 75%)
+                  `,
+                  backgroundSize: '20px 20px',
+                  backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
+                  backgroundColor: '#ffffff'
+                }}
+              >
+                {outputDataUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={outputDataUrl}
+                    alt="Result"
+                    className="w-full h-full object-contain p-1 relative z-10 rounded-2xl"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center p-12">
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-12 w-12 animate-spin text-primary/50 mb-3" />
+                        <span className="text-xs text-foreground/40">Removing background...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FileImage className="h-12 w-12 text-border mb-2" />
+                        <span className="text-xs text-foreground/40">Processed image will appear here</span>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {outputDataUrl && (
+                <div className="space-y-4 pt-2">
+                  {/* Format Selector */}
+                  <div className="flex flex-col items-center gap-3">
+                    <span className="text-xs font-medium text-foreground/50 uppercase tracking-wide">Download Format</span>
+                    <div className="inline-flex items-center gap-2 p-1 rounded-full bg-surface border border-border">
+                      {(["PNG", "JPG", "WEBP"] as const).map((format) => (
+                        <button
+                          key={format}
+                          onClick={() => setOutputFormat(format)}
+                          className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${outputFormat === format
+                            ? "bg-primary text-background shadow-sm"
+                            : "text-foreground/60 hover:text-foreground/80"
+                            }`}
+                        >
+                          {format}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Download Button */}
+                  <div className="flex justify-center">
+                    <a
+                      href={outputDataUrl}
+                      download={`background-removed.${outputFormat.toLowerCase()}`}
+                      className="inline-flex items-center gap-2 rounded-full bg-primary text-background px-8 py-3 text-sm font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30"
+                    >
+                      <Download className="h-4 w-4" />
+                      Download {outputFormat}
+                    </a>
+                  </div>
+                </div>
               )}
             </div>
           </div>

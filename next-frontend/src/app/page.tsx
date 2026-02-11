@@ -2,9 +2,7 @@
 
 import { motion } from "framer-motion";
 import {
-  UploadIcon,
   Zap,
-  Image as ImageIcon,
   FileImage,
   Sparkles,
   Check
