@@ -12,7 +12,7 @@ A free, fast, and powerful AI-powered background removal tool built with Next.js
 
 ## 🎥 Demo
 
-https://github.com/user-attachments/assets/demo.mov
+![Novalens Demo - AI-powered background removal in action](demo.gif)
 
 *Watch the app in action: upload images, remove backgrounds instantly, and download in your preferred format*
 
