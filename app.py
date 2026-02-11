@@ -91,7 +91,7 @@ def remove_background():
         image_data = data['image']
         output_format = data.get('format', 'PNG').upper()
         # Optional settings for the heavy lifting
-        model_name = data.get('model', 'u2net')
+        model_name = data.get('model', 'u2netp')
         alpha_matting = bool(data.get('alpha_matting', False))
         am_fg = int(data.get('alpha_matting_foreground_threshold', 240))
         am_bg = int(data.get('alpha_matting_background_threshold', 10))
