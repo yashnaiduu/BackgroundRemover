@@ -87,10 +87,10 @@ def remove_background():
         if not data or 'image' not in data:
             return jsonify({'error': 'No image data provided'}), 400
         
-        # Get image data and format
+        # Pull out the image and settings
         image_data = data['image']
         output_format = data.get('format', 'PNG').upper()
-        # Optional processing params (backgroundremover)
+        # Optional settings for the heavy lifting
         model_name = data.get('model', 'u2net')
         alpha_matting = bool(data.get('alpha_matting', False))
         am_fg = int(data.get('alpha_matting_foreground_threshold', 240))
@@ -98,34 +98,44 @@ def remove_background():
         am_erode = int(data.get('alpha_matting_erode_structure_size', 10))
         am_base = int(data.get('alpha_matting_base_size', 1000))
         
-        # Decode base64 image
-        image_bytes = base64.b64decode(image_data.split(',')[1])
-        input_image = Image.open(io.BytesIO(image_bytes))
+        # Decode the base64 string
+        try:
+            image_bytes = base64.b64decode(image_data.split(',')[1])
+            input_image = Image.open(io.BytesIO(image_bytes))
+        except Exception:
+             return jsonify({'error': 'Invalid image data'}), 400
         
-        # Remove background using preferred library
+        # Time to do the magic - remove that bg!
         output_image: Image.Image
-        if HAS_BGREMOVER:
+        if True: # Rembg is usually better, so stick with it
             try:
-                # backgroundremover expects bytes and returns bytes (PNG with alpha)
-                result_bytes = br_remove(
-                    image_bytes,
-                    model_name=model_name,
+                # Alpha matting helps with hair/fur details
+                output_image = rembg_remove(
+                    input_image,
                     alpha_matting=alpha_matting,
                     alpha_matting_foreground_threshold=am_fg,
                     alpha_matting_background_threshold=am_bg,
-                    alpha_matting_erode_structure_size=am_erode,
-                    alpha_matting_base_size=am_base,
+                    alpha_matting_erode_size=am_erode
                 )
-                output_image = Image.open(io.BytesIO(result_bytes))
-            except Exception:
-                # Fallback to rembg on error
-                output_image = rembg_remove(input_image)
-        else:
-            output_image = rembg_remove(input_image)
+            except Exception as e:
+                print(f"rembg crashed: {e}, attempting backup option")
+                if HAS_BGREMOVER:
+                     result_bytes = br_remove(
+                        image_bytes,
+                        model_name=model_name,
+                        alpha_matting=alpha_matting,
+                        alpha_matting_foreground_threshold=am_fg,
+                        alpha_matting_background_threshold=am_bg,
+                        alpha_matting_erode_structure_size=am_erode,
+                        alpha_matting_base_size=am_base,
+                    )
+                     output_image = Image.open(io.BytesIO(result_bytes))
+                else:
+                    raise e
         
-        # Convert to desired format
+        # Export it as whatever the user asked for
         if output_format == 'JPG' or output_format == 'JPEG':
-            # For JPG, we need to add a white background since JPG doesn't support transparency
+            # JPG needs a white background since it hates transparency
             white_background = Image.new('RGB', output_image.size, (255, 255, 255))
             white_background.paste(output_image, mask=output_image.split()[-1] if output_image.mode == 'RGBA' else None)
             output_image = white_background
@@ -135,15 +145,15 @@ def remove_background():
         else:
             format_ext = 'PNG'
         
-        # Save to bytes
+        # Save to memory buffer
         output_buffer = io.BytesIO()
         output_image.save(output_buffer, format=format_ext, quality=95)
         output_buffer.seek(0)
         
-        # Encode to base64
+        # Encode back to base64
         output_base64 = base64.b64encode(output_buffer.getvalue()).decode('utf-8')
         
-        # Return result
+        # Send it back
         result = {
             'success': True,
             'image': f'data:image/{format_ext.lower()};base64,{output_base64}',
