@@ -1,0 +1,3 @@
+Verification File
+If you can see this, Vercel static serving is working!
+Timestamp: 2026-02-11
