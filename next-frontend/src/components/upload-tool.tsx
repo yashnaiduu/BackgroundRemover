@@ -3,7 +3,6 @@
 import { useCallback, useRef, useState, useEffect } from "react";
 import {
   Upload,
-  ImageIcon,
   Loader2,
   Download,
   FileImage
