@@ -29,8 +29,8 @@ export function Navbar() {
         `}
       >
         {/* Logo */}
-        <Link href="/" className="text-lg font-bold tracking-tight flex items-center gap-2">
-          <div className="h-3 w-3 rounded-full bg-primary" />
+        <Link href="/" className="text-xl font-bold tracking-tight flex items-center gap-2.5">
+          <div className="h-4 w-4 rounded-full bg-primary shadow-lg shadow-primary/30" />
           Novalens
         </Link>
 
