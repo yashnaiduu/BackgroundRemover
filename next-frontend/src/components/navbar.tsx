@@ -4,103 +4,83 @@ import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
+      setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  if (!mounted) {
-    return (
-      <header className="fixed inset-x-0 top-0 z-50 h-16 glass soft-shadow">
-        <div className="container mx-auto flex h-full items-center justify-between px-4">
-          <div className="h-6 w-24 bg-white/10 rounded animate-pulse"></div>
-          <div className="flex items-center gap-4">
-            <div className="h-8 w-8 bg-white/10 rounded-full animate-pulse"></div>
-          </div>
-        </div>
-      </header>
-    );
-  }
-
   return (
-    <header className={`fixed inset-x-0 top-0 z-50 h-16 transition-all duration-300 ${isScrolled ? "glass soft-shadow py-2" : "bg-transparent py-3"}`}>
-      <div className="container mx-auto flex h-full items-center justify-between px-4">
-        <Link href="/" className="text-xl font-bold tracking-tight">
-          BG<span className="text-primary">Remover</span>
+    <header className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 px-4">
+      <motion.nav
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6 }}
+        className={`relative flex items-center justify-between px-6 py-3 rounded-full transition-all duration-300 w-full max-w-4xl 
+          ${isScrolled || isMenuOpen ? "glass shadow-sm bg-surface/80" : "bg-transparent"}
+        `}
+      >
+        {/* Logo */}
+        <Link href="/" className="text-lg font-bold tracking-tight flex items-center gap-2">
+          <div className="h-3 w-3 rounded-full bg-primary" />
+          Novalens
         </Link>
 
-        <nav className="hidden md:flex items-center gap-6">
-          <Link href="/" className="opacity-80 hover:opacity-100 transition-opacity">
-            Home
-          </Link>
-          <Link href="/#features" className="opacity-80 hover:opacity-100 transition-opacity">
-            Features
-          </Link>
-          <Link href="/#contact" className="opacity-80 hover:opacity-100 transition-opacity">
-            Contact
-          </Link>
-        </nav>
+        {/* Desktop Nav */}
+        <div className="hidden md:flex items-center gap-8 text-sm font-medium opacity-80">
+          <Link href="#tool" className="hover:text-primary hover:opacity-100 transition-colors">Tool</Link>
+          <Link href="#features" className="hover:text-primary hover:opacity-100 transition-colors">Features</Link>
+        </div>
 
+        {/* Actions */}
         <div className="flex items-center gap-3">
           <ThemeToggle />
 
+          {/* Mobile Toggle */}
           <button
+            className="md:hidden p-1 opacity-70 hover:opacity-100"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
           >
-            {isMenuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
+            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
-      </div>
+      </motion.nav>
 
-      {/* Mobile menu */}
-      {isMenuOpen && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-          className="md:hidden glass soft-shadow mt-2"
-        >
-          <div className="container mx-auto px-4 py-4 space-y-3">
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="absolute top-20 left-4 right-4 p-4 rounded-2xl glass bg-surface shadow-xl md:hidden flex flex-col gap-2 text-center"
+          >
             <Link
-              href="/"
-              className="block py-2 opacity-80 hover:opacity-100 transition-opacity"
+              href="#tool"
+              className="py-3 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/5 rounded-xl transition"
               onClick={() => setIsMenuOpen(false)}
             >
-              Home
+              Tool
             </Link>
             <Link
-              href="/#features"
-              className="block py-2 opacity-80 hover:opacity-100 transition-opacity"
+              href="#features"
+              className="py-3 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/5 rounded-xl transition"
               onClick={() => setIsMenuOpen(false)}
             >
               Features
             </Link>
-            <Link
-              href="/#contact"
-              className="block py-2 opacity-80 hover:opacity-100 transition-opacity"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Contact
-            </Link>
-          </div>
-        </motion.div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

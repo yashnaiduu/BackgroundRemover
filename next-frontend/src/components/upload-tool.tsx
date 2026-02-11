@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState, useEffect } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload,
@@ -105,14 +105,6 @@ export function UploadTool() {
     [onFiles]
   );
 
-  const borderClass = useMemo(
-    () =>
-      dragActive
-        ? "border-transparent bg-gradient-to-r from-[--primary]/20 to-[--secondary]/20"
-        : "border-white/15",
-    [dragActive]
-  );
-
 
 
   if (!mounted) {
@@ -148,9 +140,11 @@ export function UploadTool() {
   }
 
   return (
-    <div className="glass rounded-2xl p-6 soft-shadow">
-      <h2 className="text-2xl font-semibold tracking-tight">Background Remover</h2>
-      <p className="mt-2 opacity-80">Drag & drop an image or click to upload.</p>
+    <div className="w-full max-w-4xl mx-auto bg-surface border border-border rounded-3xl p-8 shadow-sm">
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-semibold tracking-tight text-primary">Upload Image</h2>
+        <p className="mt-2 text-foreground/60">Drag & drop or click to select</p>
+      </div>
 
 
       <label
@@ -160,31 +154,23 @@ export function UploadTool() {
         }}
         onDragLeave={() => setDragActive(false)}
         onDrop={onDrop}
-        className={`mt-6 block cursor-pointer rounded-xl border ${borderClass} p-8 text-center transition-colors`}
+        className={`mt-8 block cursor-pointer rounded-2xl border-2 border-dashed p-12 text-center transition-all duration-300
+          ${dragActive ? "border-primary bg-primary/5 scale-[1.01]" : "border-border hover:border-primary/50 hover:bg-surface"}`}
       >
-        <div className="mx-auto flex max-w-md flex-col items-center gap-3">
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0.8 }}
-            animate={{ scale: dragActive ? 1.05 : 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            className="relative"
-          >
-            <div className="gradient-border rounded-2xl p-4">
-              <div className="rounded-xl bg-[--surface] p-4">
-                <Upload className="h-6 w-6" />
-              </div>
-            </div>
-          </motion.div>
+        <div className="mx-auto flex max-w-md flex-col items-center gap-4">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-surface border border-border shadow-sm">
+            <Upload className="h-6 w-6 text-foreground/70" />
+          </div>
           <div>
-            <p className="text-sm font-medium">Drop your image here</p>
-            <p className="text-xs opacity-70">PNG, JPG, WebP up to ~10MB</p>
+            <p className="text-lg font-medium">Click or drag image</p>
+            <p className="text-sm text-foreground/40 mt-1">PNG, JPG, WebP up to 10MB</p>
           </div>
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="rounded-lg border px-4 py-2 text-sm hover:bg-white/5"
+            className="rounded-full bg-primary text-background px-6 py-2.5 text-sm font-medium hover:opacity-90 transition-opacity shadow-lg shadow-primary/20"
           >
-            Choose file
+            Select Image
           </button>
           <input
             ref={fileInputRef}
@@ -204,50 +190,62 @@ export function UploadTool() {
       )}
 
       {/* Preview */}
+      {/* Preview */}
       {(inputDataUrl || outputDataUrl) && (
-        <div className="mt-8 grid gap-6 md:grid-cols-2">
-          <div>
-            <div className="mb-2 flex items-center gap-2 text-sm opacity-80">
+        <div className="mt-12 grid gap-8 md:grid-cols-2">
+          {/* Original */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm font-medium text-foreground/70">
               <ImageIcon className="h-4 w-4" /> Original
             </div>
-            <div className="overflow-hidden rounded-xl border border-white/10">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+            <div className="overflow-hidden rounded-2xl border border-border bg-background/50 aspect-[4/3] flex items-center justify-center relative">
               {inputDataUrl ? (
-                <img src={inputDataUrl} alt="Original" className="block max-h-[360px] w-full object-contain bg-black/5 dark:bg-white/5" />
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={inputDataUrl} alt="Original" className="w-full h-full object-contain p-4" />
               ) : (
-                <div className="flex items-center justify-center h-64 bg-black/5 dark:bg-white/5">
-                  <FileImage className="h-12 w-12 opacity-50" />
+                <div className="flex items-center justify-center p-12">
+                  <FileImage className="h-10 w-10 text-border" />
                 </div>
               )}
             </div>
           </div>
-          <div>
-            <div className="mb-2 flex items-center gap-2 text-sm opacity-80">
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />} Result
+
+          {/* Result */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm font-medium text-foreground/70">
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
+              Result
             </div>
-            <div className="overflow-hidden rounded-xl border border-white/10">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+            <div className="overflow-hidden rounded-2xl border border-border bg-[url('/checker.svg')] bg-repeat aspect-[4/3] flex items-center justify-center relative bg-white/5">
               {outputDataUrl ? (
-                <img src={outputDataUrl} alt="Result" className="block max-h-[360px] w-full object-contain bg-transparent" />
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={outputDataUrl} alt="Result" className="w-full h-full object-contain p-4 z-10" />
               ) : (
-                <div className="flex items-center justify-center h-64 bg-transparent">
+                <div className="flex items-center justify-center p-12">
                   {isLoading ? (
-                    <Loader2 className="h-12 w-12 animate-spin opacity-50" />
+                    <Loader2 className="h-10 w-10 animate-spin text-primary/50" />
                   ) : (
-                    <FileImage className="h-12 w-12 opacity-50" />
+                    <FileImage className="h-10 w-10 text-border" />
                   )}
                 </div>
               )}
             </div>
-            {outputDataUrl && (
-              <a
-                href={outputDataUrl}
-                download={`background-removed.${outputFormat.toLowerCase()}`}
-                className="mt-3 inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm hover:bg-white/5"
-              >
-                <Download className="h-4 w-4" /> Download {outputFormat}
-              </a>
-            )}
+
+            <div className="flex justify-end pt-2">
+              {outputDataUrl ? (
+                <a
+                  href={outputDataUrl}
+                  download={`background-removed.${outputFormat.toLowerCase()}`}
+                  className="inline-flex items-center gap-2 rounded-full bg-primary text-background px-6 py-2.5 text-sm font-medium hover:opacity-90 transition-opacity shadow-lg shadow-primary/20"
+                >
+                  <Download className="h-4 w-4" /> Download Result
+                </a>
+              ) : (
+                <button disabled className="inline-flex items-center gap-2 rounded-full bg-primary/5 text-primary/30 px-6 py-2.5 text-sm font-medium cursor-not-allowed">
+                  <Download className="h-4 w-4" /> Download Result
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
