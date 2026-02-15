@@ -156,5 +156,3 @@ Contributions are welcome! Feel free to open issues or submit pull requests.
 - GitHub: [@yashnaiduu](https://github.com/yashnaiduu)
 
 ---
-
-Made with ❤️ using Next.js and Flask
