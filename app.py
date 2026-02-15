@@ -15,7 +15,7 @@ try:
     HAS_BGREMOVER = True
 except Exception:
     HAS_BGREMOVER = False
-from rembg import remove as rembg_remove
+from rembg import remove as rembg_remove, new_session
 from PIL import Image
 import base64
 import io
@@ -74,10 +74,14 @@ def token_required(f):
 with app.app_context():
     db.create_all()
 
-# Routes
-@app.route('/')
-def index():
-    return app.send_static_file('index.html')
+# Initialize global session for u2netp (lightweight model)
+# This prevents reloading the model on every request and saves memory
+try:
+    GLOBAL_SESSION = new_session("u2netp")
+    print("Global u2netp session initialized successfully")
+except Exception as e:
+    print(f"Failed to initialize global session: {e}")
+    GLOBAL_SESSION = None
 
 @app.route('/api/remove_background', methods=['POST'])
 def remove_background():
@@ -91,7 +95,8 @@ def remove_background():
         image_data = data['image']
         output_format = data.get('format', 'PNG').upper()
         # Optional settings for the heavy lifting
-        model_name = data.get('model', 'u2netp')
+        # Default to u2netp for memory efficiency
+        model_name = data.get('model', 'u2netp') 
         alpha_matting = bool(data.get('alpha_matting', False))
         am_fg = int(data.get('alpha_matting_foreground_threshold', 240))
         am_bg = int(data.get('alpha_matting_background_threshold', 10))
@@ -110,8 +115,12 @@ def remove_background():
         if True: # Rembg is usually better, so stick with it
             try:
                 # Alpha matting helps with hair/fur details
+                # Use global session if available and model is u2netp
+                session = GLOBAL_SESSION if model_name == 'u2netp' else new_session(model_name)
+                
                 output_image = rembg_remove(
                     input_image,
+                    session=session,
                     alpha_matting=alpha_matting,
                     alpha_matting_foreground_threshold=am_fg,
                     alpha_matting_background_threshold=am_bg,
