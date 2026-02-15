@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Novalens - AI Background Remover
 
 A free, fast, and powerful AI-powered background removal tool built with Next.js and Flask.
@@ -158,3 +159,16 @@ Contributions are welcome! Feel free to open issues or submit pull requests.
 ---
 
 Made with ❤️ using Next.js and Flask
+=======
+---
+title: Novalens Backend
+emoji: 🔥
+colorFrom: indigo
+colorTo: indigo
+sdk: docker
+pinned: false
+license: mit
+---
+
+Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
+>>>>>>> hf/main
