@@ -1,33 +1,28 @@
 ---
-title: Novalens Backend
-emoji: 🔥
-colorFrom: indigo
-colorTo: indigo
 sdk: docker
-pinned: false
-license: mit
 app_port: 7860
+license: mit
 ---
 
 # Novalens - AI Background Remover
 
 A free, fast, and powerful AI-powered background removal tool built with Next.js and Flask.
 
-## ✨ Features
+## Features
 
-- 🎯 **Instant Background Removal** - AI-powered background removal in seconds
-- 🎨 **Multiple Export Formats** - Download as PNG, JPG, or WEBP
-- 🚀 **100% Free** - No sign-up, no limits, completely free to use
-- 🎭 **Clean UI** - Minimalist, modern interface with dark mode support
-- 📱 **Responsive Design** - Works perfectly on desktop and mobile
+- **Instant Background Removal** - AI-powered background removal in seconds
+- **Multiple Export Formats** - Download as PNG, JPG, or WEBP
+- **100% Free** - No sign-up, no limits, completely free to use
+- **Clean UI** - Minimalist, modern interface with dark mode support
+- **Responsive Design** - Works perfectly on desktop and mobile
 
-## 🎥 Demo
+## Demo
 
 ![Novalens Demo - AI-powered background removal in action](demo.gif)
 
 *Watch the app in action: upload images, remove backgrounds instantly, and download in your preferred format*
 
-## 🏗️ Project Architecture
+## Project Architecture
 
 ```mermaid
 graph TB
@@ -70,7 +65,7 @@ graph TB
 - Pillow (Image Processing)
 - ONNX Runtime
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -116,7 +111,7 @@ graph TB
 
 3. **Open your browser** and navigate to `http://localhost:3000`
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 background-remover-pro/
@@ -132,14 +127,14 @@ background-remover-pro/
 └── README.md            # This file
 ```
 
-## 🎨 Usage
+## Usage
 
 1. **Upload an Image** - Click or drag & drop an image (PNG, JPG, WEBP)
 2. **Wait for Processing** - AI removes the background automatically
 3. **Choose Format** - Select PNG, JPG, or WEBP
 4. **Download** - Get your processed image instantly
 
-## 🛠️ Configuration
+## Configuration
 
 ### Backend Port
 Edit `app.py` line 375:
@@ -153,15 +148,15 @@ Create `next-frontend/.env.local`:
 NEXT_PUBLIC_API_BASE=http://localhost:8000
 ```
 
-## 📝 License
+## License
 
 MIT License - feel free to use this project for personal or commercial purposes.
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Feel free to open issues or submit pull requests.
 
-## 👨‍💻 Author
+## Author
 
 **Yash Naidu**
 - GitHub: [@yashnaiduu](https://github.com/yashnaiduu)
