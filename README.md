@@ -28,6 +28,16 @@ Built with **Next.js 15** (Frontend) and **Flask** (Backend) running on **Huggin
 
 ---
 
+## 📚 Table of Contents
+
+- [Features](#-features)
+- [Architecture](#-architecture)
+- [Quick Start](#-quick-start)
+- [Deployment](#-deployment)
+- [Troubleshooting](#-troubleshooting)
+- [Contributing](#-contributing)
+- [License](#-license)
+
 ## ✨ Features
 
 - **🎯 Instant AI Removal**: Powered by `u2netp` (lightweight & fast) and `rembg`.
@@ -88,6 +98,33 @@ graph TB
 4.  **Open App**
     Visit `http://localhost:3000`.
 
+## ☁️ Deployment
+
+### Backend (Hugging Face Spaces)
+
+This project is configured for **Hugging Face Spaces** (Docker SDK).
+
+[![Deploy to Spaces](https://huggingface.co/datasets/huggingface/badges/raw/main/deploy-to-spaces-lg.svg)](https://huggingface.co/new-space?template=yashnaiduu/Novalens)
+
+1.  Click the button above.
+2.  Select **Docker** as the SDK.
+3.  Choose the free tier (16GB RAM).
+4.  Deploy!
+
+### Frontend (Vercel)
+
+Deploy the `next-frontend` directory to Vercel. Set the environment variable:
+`NEXT_PUBLIC_API_BASE=https://your-space-name.hf.space`
+
+## 🔧 Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| **404 Not Found** | Ensure the backend URL in `NEXT_PUBLIC_API_BASE` is correct (no trailing slash). |
+| **500 Internal Server Error** | Check backend logs. If using local, ensure `rembg` is installed. |
+| **Memory Error** | Upgrade to `u2netp` model (default in this repo) or use a machine with >4GB RAM. |
+| **CORS Error** | Ensure backend allows origins from your frontend domain (handled in `app.py`). |
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to get started.
@@ -99,5 +136,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 <div align="center">
-Made with ❤️ by Yash Naidu
+Made with ❤️ by Yash Naidu · <a href="https://github.com/yashnaiduu">GitHub</a> · <a href="https://twitter.com/yourhandle">Twitter</a>
 </div>
